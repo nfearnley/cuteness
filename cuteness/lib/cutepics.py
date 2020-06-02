@@ -9,11 +9,13 @@ from discord import File
 from discord.ext.commands import command, Cog
 
 
-def get_url_filename(url, content_type):
+def get_url_filename(url, mimetype):
     filename = os.path.basename(urlparse(url).path)
-    if mimetypes.guess_type(filename) != content_type:
-        filename += mimetypes.guess_extension(content_type) or ""
-    return
+    filename_mimetype, _ = mimetypes.guess_type(filename)
+    if filename_mimetype != mimetype:
+        mimetype_extension = mimetypes.guess_extension(mimetype)
+        filename += mimetype_extension or ""
+    return filename
 
 
 # download a file, saving it into a discord File object

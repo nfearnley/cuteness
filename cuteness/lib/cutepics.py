@@ -9,6 +9,28 @@ from discord import File
 from discord.ext.commands import command, Cog
 
 
+def get_url_filename(url, content_type):
+    filename = os.path.basename(urlparse(url).path)
+    if mimetypes.guess_type(filename) != content_type:
+        filename += mimetypes.guess_extension(content_type) or ""
+    return
+
+
+# download a file, saving it into a discord File object
+async def download_file(url, session=None):
+    if session is None:
+        # If a session is not provided, create one and call download_file(url, session)
+        async with aiohttp.ClientSession() as session:
+            return await download_file(url, session)
+
+    async with session.get(url) as r:
+        if r.status != 200:
+            raise PicFetchFailedException
+        data = io.BytesIO(await r.read())
+    filename = get_url_filename(url, r.content_type)
+    return File(data, filename)
+
+
 class PicFetchFailedException(Exception):
     pass
 
@@ -26,23 +48,10 @@ class PicCategoryCog(Cog, name="Cuteness"):
 
 
 class PicSource:
-    def __init__(self, category):
-        self.category = category
+    category = None
 
     async def fetch(self):
         raise NotImplementedError()
-
-    async def download(self, url):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as r:
-                if r.status != 200:
-                    raise PicFetchFailedException
-                data = await r.read()
-        filename = os.path.basename(urlparse(url).path)
-        if mimetypes.guess_type(filename) != r.content_type:
-            filename += mimetypes.guess_extension(r.content_type) or ""
-        filedata = io.BytesIO(data)
-        return File(filedata, filename)
 
 
 class PicCategory:
@@ -53,40 +62,24 @@ class PicCategory:
 
     async def fetch(self):
         source = random.choice(self.sources)
-        return await source.fetch()
+        try:
+            return await source.fetch()
+        except Exception:
+            raise PicFetchFailedException(f"Failed to fetch a pic from {self.name} category")
 
     def __len__(self):
         return len(self.sources)
 
-    def registerSource(self, source):
+    def add_source(self, source):
         self.sources.append(source)
 
-    def unregisterSource(self, source):
+    def remove_source(self, source):
         self.sources.remove(source)
 
 
 class PicGetter:
     def __init__(self):
         self._categories = {}
-
-    def registerSource(self, bot, source):
-        name = source.category.lower()
-        if name in self:
-            category = self._categories[name]
-        else:
-            category = PicCategory(name)
-            bot.add_cog(category.cog)
-            self._categories[name] = category
-        category.registerSource(source)
-
-    def unregisterSource(self, bot, source):
-        name = source.category.lower()
-        category = self._categories[name]
-        category.unregisterSource(bot, source)
-        if len(category) > 0:
-            return
-        del self._categories[name]
-        bot.remove_cog(category.cog)
 
     async def fetch(self, name=None):
         """fetch a random image from a category"""
@@ -95,6 +88,25 @@ class PicGetter:
         name = name.lower()
         category = self._categories[name]
         return await category.fetch()
+
+    def add_source(self, bot, source):
+        name = source.category.lower()
+        if name in self:
+            category = self._categories[name]
+        else:
+            category = PicCategory(name)
+            bot.add_cog(category.cog)
+            self._categories[name] = category
+        category.add_source(source)
+
+    def remove_source(self, bot, source):
+        name = source.category.lower()
+        category = self._categories[name]
+        category.remove_source(bot, source)
+        if len(category) > 0:
+            return
+        del self._categories[name]
+        bot.remove_cog(category.cog)
 
     def __contains__(self, name):
         return name is None or name.lower() in self._categories

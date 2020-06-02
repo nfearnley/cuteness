@@ -9,6 +9,7 @@ from cuteness import discordplus
 
 from cuteness.lib.conf import conf, ConfigError
 from cuteness.lib import paths
+from cuteness.lib.cutepics import cutepics
 
 parser = argparse.ArgumentParser(description="Cute pictures discord bot", add_help=True)
 parser.add_argument("--config", dest="confpath", action="store", type=Path, help="path to configuration file")
@@ -55,6 +56,7 @@ def main():
     async def on_first_ready():
         print(f"Logged in as: {bot.user} ({bot.user.id})")
         print(f"Prefix: {conf.prefix}")
+        print(f"Loaded Categories: {', '.join(cutepics.categories)}")
 
     if not conf.authtoken:
         print("Authentication token not found!")

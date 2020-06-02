@@ -91,7 +91,7 @@ class PicGetter:
 
     def add_source(self, bot, source):
         name = source.category.lower()
-        if name in self:
+        if name in self._categories:
             category = self._categories[name]
         else:
             category = PicCategory(name)
@@ -108,8 +108,9 @@ class PicGetter:
         del self._categories[name]
         bot.remove_cog(category.cog)
 
-    def __contains__(self, name):
-        return name is None or name.lower() in self._categories
+    @property
+    def categories(self):
+        return list(self._categories.keys())
 
 
 cutepics = PicGetter()

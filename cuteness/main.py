@@ -1,3 +1,4 @@
+import pkgutil
 import os
 import argparse
 from pathlib import Path
@@ -12,8 +13,6 @@ from cuteness.lib import paths
 parser = argparse.ArgumentParser(description="Cute pictures discord bot", add_help=True)
 parser.add_argument("--config", dest="confpath", action="store", type=Path, help="path to configuration file")
 parser.add_argument("--init", dest="initconf", action="store_true", help="initialize the configuration file")
-
-sources = ["randomfox", "randomcat"]
 
 discordplus.patch()
 
@@ -46,8 +45,11 @@ def main():
 
     bot = Bot(command_prefix=conf.prefix)
 
-    for extension in sources:
-        bot.load_extension("cuteness.sources." + extension)
+    extension_dirs = ["cogs", "sources"]
+    for d in extension_dirs:
+        extensions = (m.name for m in pkgutil.iter_modules([f"cuteness/{d}"]))
+        for e in extensions:
+            bot.load_extension(f"cuteness.{d}.{e}")
 
     @bot.event
     async def on_first_ready():

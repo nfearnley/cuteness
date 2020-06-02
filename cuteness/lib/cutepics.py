@@ -14,8 +14,7 @@ class PicFetchFailedException(Exception):
 
 
 class PicCategoryCog(Cog, name="Cuteness"):
-    def __init__(self, bot, category):
-        self.bot = bot
+    def __init__(self, category):
         self.category = category
         self.fetch.name = category.name
         self.fetch.help = f"Get a random cute {category.name} picture"
@@ -47,10 +46,10 @@ class PicSource:
 
 
 class PicCategory:
-    def __init__(self, bot, name):
+    def __init__(self, name):
         self.name = name
         self.sources = []
-        self.cog = PicCategoryCog(bot, self)
+        self.cog = PicCategoryCog(self)
 
     async def fetch(self):
         source = random.choice(self.sources)
@@ -75,7 +74,7 @@ class PicGetter:
         if name in self:
             category = self._categories[name]
         else:
-            category = PicCategory(bot, name)
+            category = PicCategory(name)
             bot.add_cog(category.cog)
             self._categories[name] = category
         category.registerSource(source)

@@ -13,8 +13,7 @@ parser = argparse.ArgumentParser(description="Cute pictures discord bot", add_he
 parser.add_argument("--config", dest="confpath", action="store", type=Path, help="path to configuration file")
 parser.add_argument("--init", dest="initconf", action="store_true", help="initialize the configuration file")
 
-initial_cogs = ["cute"]
-initial_extensions = ["randomfox", "randomcat"]
+sources = ["randomfox", "randomcat"]
 
 discordplus.patch()
 
@@ -47,10 +46,8 @@ def main():
 
     bot = Bot(command_prefix=conf.prefix)
 
-    for extension in initial_extensions:
-        bot.load_extension("cuteness.extensions." + extension)
-    for cog in initial_cogs:
-        bot.load_extension("cuteness.cogs." + cog)
+    for extension in sources:
+        bot.load_extension("cuteness.sources." + extension)
 
     @bot.event
     async def on_first_ready():

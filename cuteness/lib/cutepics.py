@@ -1,21 +1,34 @@
+import io
 import mimetypes
 import aiohttp
 import random
-import os
+import os.path
 from urllib.parse import urlparse
 
 from discord import File
-from discord.ext.commands import Command
+from discord.ext.commands import command, Cog
 
 
 class PicFetchFailedException(Exception):
     pass
 
 
+class PicCategoryCog(Cog, name="Cuteness"):
+    def __init__(self, bot, category):
+        self.bot = bot
+        self.category = category
+        self.fetch.name = category.name
+        self.fetch.help = f"Get a random cute {category.name} picture"
+
+    @command()
+    async def fetch(self, ctx):
+        picfile = await self.category.fetch()
+        await ctx.channel.send(file=picfile)
+
+
 class PicSource:
     def __init__(self, category):
         self.category = category
-        cutepics.registerSource(self)
 
     async def fetch(self):
         raise NotImplementedError()
@@ -26,27 +39,22 @@ class PicSource:
                 if r.status != 200:
                     raise PicFetchFailedException
                 data = await r.read()
-            filename = os.basename(urlparse(url).path)
-            if mimetypes.guess_type(filename) != r.content_type:
-                filename += mimetypes.guess_extensionr.content_type() or ""
-        return File(data, filename)
-
-
-class PicCommand(Command):
-    def __init__(self, name, category):
-        async def callback(bot, ctx):
-            picfile = await category.fetch()
-            await ctx.channel.send(file=picfile)
-        super().__init__(name=name, callback=callback, help=f"Get a random cute {name} picture")
+        filename = os.path.basename(urlparse(url).path)
+        if mimetypes.guess_type(filename) != r.content_type:
+            filename += mimetypes.guess_extension(r.content_type) or ""
+        filedata = io.BytesIO(data)
+        return File(filedata, filename)
 
 
 class PicCategory:
-    def __init__(self):
+    def __init__(self, bot, name):
+        self.name = name
         self.sources = []
+        self.cog = PicCategoryCog(bot, self)
 
     async def fetch(self):
-        source = random.choose(self.sources)
-        await source.fetch()
+        source = random.choice(self.sources)
+        return await source.fetch()
 
     def __len__(self):
         return len(self.sources)
@@ -58,59 +66,39 @@ class PicCategory:
         self.sources.remove(source)
 
 
-class PicCategoryCollection:
-    def __init__(self):
-        self.categories = []
-
-    def get(self, name):
-        if name is None:
-            return random.choose(self.categories.values())
-        name = name.lower()
-        return self.categories[name]
-
-    def create(self, bot, name):
-        name = name.lower()
-        self.categories[name] = PicCategory()
-        bot.add_command(PicCommand(name, self))
-
-    def getOrCreate(self, bot, name):
-        name = name.lower()
-        if name not in self.categories:
-            self.create(bot, name)
-        return self.categories[name]
-
-    def remove(self, bot, name):
-        del self.categories[name]
-
-    def removeIfEmpty(self, bot, name):
-        name = name.lower()
-        category = self.categories.get(name)
-        if category is None:
-            return
-        if len(category) > 0:
-            return
-        del self.categories[name]
-        bot.remove_command(name)
-
-
 class PicGetter:
     def __init__(self):
-        self.categories = PicCategoryCollection()
+        self._categories = {}
 
     def registerSource(self, bot, source):
-        category = self.categories.getOrCreate(bot, source.category)
+        name = source.category.lower()
+        if name in self:
+            category = self._categories[name]
+        else:
+            category = PicCategory(bot, name)
+            bot.add_cog(category.cog)
+            self._categories[name] = category
         category.registerSource(source)
 
     def unregisterSource(self, bot, source):
-        category = self.categories.get(source.category)
-        if not category:
+        name = source.category.lower()
+        category = self._categories[name]
+        category.unregisterSource(bot, source)
+        if len(category) > 0:
             return
-        category.unregisterSource(source)
-        self.categories.removeIfEmpty(bot, source.category)
+        del self._categories[name]
+        bot.remove_cog(category.cog)
 
-    async def fetch(self, category_name=None):
-        category = self.categories.get(category_name)
+    async def fetch(self, name=None):
+        """fetch a random image from a category"""
+        if name is None:
+            name = random.choice(list(self._categories.keys()))
+        name = name.lower()
+        category = self._categories[name]
         return await category.fetch()
+
+    def __contains__(self, name):
+        return name is None or name.lower() in self._categories
 
 
 cutepics = PicGetter()

@@ -10,6 +10,11 @@ from discord.ext.commands import command, Cog
 
 
 def get_url_filename(url, mimetype):
+    """Returns the correct filename, given url and mimetype
+
+    The filename is extracted from the url.
+    The mimetype is used to determine the appropriate file extension. If the extension is missing, it is appended to the filename.
+    """
     filename = os.path.basename(urlparse(url).path)
     filename_mimetype, _ = mimetypes.guess_type(filename)
     if filename_mimetype != mimetype:
@@ -18,10 +23,12 @@ def get_url_filename(url, mimetype):
     return filename
 
 
-# download a file, saving it into a discord File object
 async def download_file(url, session=None):
+    """Downloads a file from a url, returning it as a discord.py File object
+
+    If an existing session is not provided, one will be created.
+    """
     if session is None:
-        # If a session is not provided, create one and call download_file(url, session)
         async with aiohttp.ClientSession() as session:
             return await download_file(url, session)
 
@@ -34,10 +41,13 @@ async def download_file(url, session=None):
 
 
 class PicFetchFailedException(Exception):
+    """Thrown when a category fails to download an image"""
     pass
 
 
 class PicCategoryCog(Cog, name="Cuteness"):
+    """A discord.py Cog used to dynamically create a new command for each category"""
+
     def __init__(self, category):
         self.category = category
         self.fetch.name = category.name
@@ -50,6 +60,12 @@ class PicCategoryCog(Cog, name="Cuteness"):
 
 
 class PicSource:
+    """A stub for creating child PicSource classes
+
+    Each source belongs to a single category, and is used to fetch images for that category.
+    Child classes must have `PicSource.category` set
+    When a category tries to retrieve an image, it will call async `PicSource.fetch()`. This should be overridden by an child classes.
+    """
     category = None
 
     async def fetch(self):
@@ -57,6 +73,11 @@ class PicSource:
 
 
 class PicCategory:
+    """A class repesenting each category of images
+
+    Sources will be added to this category by calling PicGetter.add_source()
+    Images can be fetched from this category with PicCategory.fetch()
+    """
     def __init__(self, name):
         self.name = name
         self.sources = []
@@ -69,17 +90,19 @@ class PicCategory:
         except Exception:
             raise PicFetchFailedException(f"Failed to fetch a pic from {self.name} category")
 
-    def __len__(self):
-        return len(self.sources)
-
     def add_source(self, source):
         self.sources.append(source)
 
-    def remove_source(self, source):
-        self.sources.remove(source)
-
 
 class PicGetter:
+    """Root class of cutepics module
+
+    Accessible by: from cuteness.lib.cutepics import cutepics
+    An image from a random category can be fetched with `cutepics.fetch()`
+    An image from a specific category can be fetched with `cutepics.fetch(name)`
+    Sources can be added with `cutepics.add_source(bot, source)`
+    A list of categories is available from `cutepics.categories`
+    """
     def __init__(self):
         self._categories = {}
 
@@ -100,15 +123,6 @@ class PicGetter:
             bot.add_cog(category.cog)
             self._categories[name] = category
         category.add_source(source)
-
-    def remove_source(self, bot, source):
-        name = source.category.lower()
-        category = self._categories[name]
-        category.remove_source(bot, source)
-        if len(category) > 0:
-            return
-        del self._categories[name]
-        bot.remove_cog(category.cog)
 
     @property
     def categories(self):

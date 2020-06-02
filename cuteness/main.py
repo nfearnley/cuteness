@@ -44,7 +44,7 @@ def main():
         print(e)
         return
 
-    bot = Bot(command_prefix=conf.prefix)
+    bot = Bot(command_prefix=conf.prefix, help_command=None)
 
     extension_dirs = ["cogs", "sources"]
     for d in extension_dirs:

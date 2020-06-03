@@ -10,7 +10,7 @@ class HelpCog(Cog, name="Cuteness"):
         commands = (f'`{p}{c}`' for c in cutepics.categories)
         await ctx.channel.send(
             f"Type `{p}cute` to fetch a random cute picture!\n"
-            "Or type any of these to fetch a pic from a category:\n"
+            "Or use one of these categories:\n"
             f"{', '.join(commands)}"
         )
 

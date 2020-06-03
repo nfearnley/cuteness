@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 
 from discord import File
 from discord.ext.commands import command, Cog
-from discord.ext.tasks import loop
 
 
 def get_url_filename(url, mimetype):
@@ -59,6 +58,16 @@ class PicSource:
 
     async def fetch(self):
         raise NotImplementedError()
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"PicSource({self.name!r})"
+
+    @property
+    def name(self):
+        return self.__class__.__name__
 
 
 class PicCategory(Cog, name="Cuteness"):
@@ -125,6 +134,12 @@ class PicCategory(Cog, name="Cuteness"):
     def add_source(self, source):
         self.sources.append(source)
 
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"PicCategory({self.name!r})"
+
 
 class PicGetter:
     """Root class of cutepics module
@@ -160,6 +175,12 @@ class PicGetter:
     @property
     def categories(self):
         return list(self._categories.keys())
+
+    def __str__(self):
+        return "cutepics"
+
+    def __repr__(self):
+        return "PicGetter"
 
 
 cutepics = PicGetter()

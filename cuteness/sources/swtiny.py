@@ -4,9 +4,8 @@ import random
 from cuteness.lib.cutepics import cutepics, PicSource, download_file
 
 
-class SWTinySource(PicSource):
+class SWTiny(PicSource):
     category = "tiny"
-    name = "swtiny"
 
     def __init__(self, bot):
         self.bot = bot
@@ -34,9 +33,9 @@ class SWTinySource(PicSource):
                 self.image_urls.extend(a.url for a in m.attachments if not a.is_spoiler())
             print(f"{len(self.image_urls)} urls available from #webfinds-sfw")
 
-            if next_before is None:
+            if next_before is None or len(self.image_urls) >= 2000:
                 running = False
 
 
 def setup(bot):
-    cutepics.add_source(bot, SWTinySource(bot))
+    cutepics.add_source(bot, SWTiny(bot))

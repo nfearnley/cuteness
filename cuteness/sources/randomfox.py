@@ -3,9 +3,8 @@ import aiohttp
 from cuteness.lib.cutepics import cutepics, PicSource, download_file
 
 
-class RandomFoxSource(PicSource):
+class RandomFox(PicSource):
     category = "fox"
-    name = "randomfox"
 
     async def fetch(self):
         async with aiohttp.ClientSession(raise_for_status=True) as session:
@@ -16,4 +15,4 @@ class RandomFoxSource(PicSource):
 
 
 def setup(bot):
-    cutepics.add_source(bot, RandomFoxSource())
+    cutepics.add_source(bot, RandomFox())

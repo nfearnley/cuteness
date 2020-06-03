@@ -1,6 +1,22 @@
+def getListDictItem(data, key, *, create=False):
+    try:
+        key = int(key)
+    except ValueError:
+        pass
+    try:
+        return data[key]
+    except (KeyError, IndexError):
+        raise KeyError
+
+
 class PathDict:
     def __init__(self, data={}):
-        self._values = dict(data)
+        try:
+            # Try to convert directly to dict
+            self._values = dict(data)
+        except ValueError:
+            # If unable to covert directly to dict, try to convert an iterable to dict
+            self._values = {i: v for i, v in enumerate(data)}
 
     def __getitem__(self, path):
         """value = PathDict[path]"""
@@ -9,11 +25,11 @@ class PathDict:
 
         for c in components:
             try:
-                branch = branch[c]
-            except (KeyError):
-                err = KeyError(f"Path not found: {self.path!r}")
+                branch = getListDictItem(branch, c)
+            except KeyError:
+                err = KeyError(f"Path not found: {path!r}")
                 err.path = path
-                raise KeyError
+                raise err
 
         return branch
 
@@ -24,16 +40,18 @@ class PathDict:
         last = components.pop()
 
         for c in components:
-            if c not in branch:
+            try:
+                branch = getListDictItem(branch, c)
+            except KeyError:
                 branch[c] = dict()
-            branch = branch[c]
+                branch = getListDictItem(branch, c)
         branch[last] = value
 
     def get(self, path, default=None):
         """value = PathDict.get(path, default)"""
         try:
             return self[path]
-        except (KeyError):
+        except KeyError:
             return default
 
     def toDict(self):

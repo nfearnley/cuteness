@@ -17,6 +17,8 @@ def get_url_filename(url, mimetype):
     The mimetype is used to determine the appropriate file extension. If the extension is missing, it is appended to the filename.
     """
     filename = os.path.basename(urlparse(url).path)
+    if mimetype == "application/octet-stream":
+        return filename
     filename_mimetype, _ = mimetypes.guess_type(filename)
     if filename_mimetype != mimetype:
         mimetype_extension = mimetypes.guess_extension(mimetype)

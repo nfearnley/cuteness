@@ -1,7 +1,7 @@
 import asyncio
 import random
 
-from cuteness.lib.cutepics import cutepics, PicSource, download_file
+from cuteness.lib.cutepics import cutepics, PicSource, download_file, SourceNotReadyException
 
 
 class SWTiny(PicSource):
@@ -16,6 +16,8 @@ class SWTiny(PicSource):
         asyncio.create_task(self.scrape_channel())
 
     async def fetch(self):
+        if not self.image_urls:
+            raise SourceNotReadyException("No image urls scraped yet")
         image_url = random.choice(self.image_urls)
         return await download_file(image_url)
 

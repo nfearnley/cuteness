@@ -12,6 +12,16 @@ from discord.ext.commands import command, Cog
 from cuteness.lib.pathdict import PathDict
 
 
+class PicFetchFailedException(Exception):
+    """Thrown when a category fails to download an image"""
+    pass
+
+
+class SourceNotReadyException(Exception):
+    """Thrown when a source is not ready to fetch an image"""
+    pass
+
+
 def get_url_filename(url, mimetype):
     """Returns the correct filename, given url and mimetype
 
@@ -43,11 +53,6 @@ async def download_file(url, session=None):
         data = io.BytesIO(await r.read())
     filename = get_url_filename(url, r.content_type)
     return File(data, filename)
-
-
-class PicFetchFailedException(Exception):
-    """Thrown when a category fails to download an image"""
-    pass
 
 
 class PicSource:

@@ -1,17 +1,10 @@
-import aiohttp
-
-from cuteness.lib.cutepics import cutepics, PicSource, download_file
+from cuteness.lib.cutepics import cutepics, JsonPicSource
 
 
-class ShibaBirds(PicSource):
+class ShibaBirds(JsonPicSource):
     category = "bird"
-
-    async def fetch(self):
-        async with aiohttp.ClientSession(raise_for_status=True) as session:
-            async with session.get("http://shibe.online/api/birds") as r:
-                js = await r.json()
-        image_url = js[0]
-        return await download_file(image_url)
+    url = "http://shibe.online/api/birds"
+    json_path = "0"
 
 
 def setup(bot):

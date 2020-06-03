@@ -1,17 +1,10 @@
-import aiohttp
-
-from cuteness.lib.cutepics import cutepics, PicSource, download_file
+from cuteness.lib.cutepics import cutepics, JsonPicSource
 
 
-class SomeRandomPanda(PicSource):
+class SomeRandomPanda(JsonPicSource):
     category = "panda"
-
-    async def fetch(self):
-        async with aiohttp.ClientSession(raise_for_status=True) as session:
-            async with session.get("https://some-random-api.ml/img/panda") as r:
-                js = await r.json()
-        image_url = js["link"]
-        return await download_file(image_url)
+    url = "https://some-random-api.ml/img/panda"
+    json_path = "link"
 
 
 def setup(bot):

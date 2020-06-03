@@ -44,6 +44,7 @@ def main():
         print(e)
         return
 
+    print("Starting Cuteness")
     bot = Bot(command_prefix=conf.prefix, help_command=None)
 
     extension_dirs = ["cogs", "sources"]

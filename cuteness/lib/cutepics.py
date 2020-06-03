@@ -1,3 +1,4 @@
+import asyncio
 import io
 import mimetypes
 import aiohttp
@@ -7,6 +8,7 @@ from urllib.parse import urlparse
 
 from discord import File
 from discord.ext.commands import command, Cog
+from discord.ext.tasks import loop
 
 
 def get_url_filename(url, mimetype):
@@ -45,20 +47,6 @@ class PicFetchFailedException(Exception):
     pass
 
 
-class PicCategoryCog(Cog, name="Cuteness"):
-    """A discord.py Cog used to dynamically create a new command for each category"""
-
-    def __init__(self, category):
-        self.category = category
-        self.fetch.name = category.name
-        self.fetch.help = f"Get a random cute {category.name} picture"
-
-    @command()
-    async def fetch(self, ctx):
-        picfile = await self.category.fetch()
-        await ctx.channel.send(file=picfile)
-
-
 class PicSource:
     """A stub for creating child PicSource classes
 
@@ -67,28 +55,69 @@ class PicSource:
     When a category tries to retrieve an image, it will call async `PicSource.fetch()`. This should be overridden by an child classes.
     """
     category = None
+    name = None
 
     async def fetch(self):
         raise NotImplementedError()
 
 
-class PicCategory:
+class PicCategory(Cog, name="Cuteness"):
     """A class repesenting each category of images
 
+    This is a Cog used to dynamically create a new command for each category.
     Sources will be added to this category by calling PicGetter.add_source()
     Images can be fetched from this category with PicCategory.fetch()
     """
+
     def __init__(self, name):
         self.name = name
         self.sources = []
-        self.cog = PicCategoryCog(self)
+        prefetch_count = 1
+        self.fetch_cache = asyncio.Queue(maxsize=prefetch_count)
+        self.fetch_command.name = name
+        self.fetch_command.help = f"Get a random cute {name} picture"
+
+    @Cog.listener()
+    async def on_first_ready(self):
+        asyncio.create_task(self.prefetch())
+
+    async def prefetch(self):
+        """Automatically prefetch images for each category"""
+        while True:
+            try:
+                print(f"Prefetching an image for {self.name!r} category")
+                sources = self.sources.copy()
+                random.shuffle(sources)
+                file = None
+                # Try all possible sources (in a random order) until we have at least one that succeeds
+                while file is None:
+                    source = sources.pop()
+                    try:
+                        file = await source.fetch()
+                    except Exception as e:
+                        print(f"Failed to prefetch a image from {source.name!r} source in {self.name!r} category")
+                        print(e)
+                if file is not None:
+                    await self.fetch_cache.put(file)
+                    print(f"Successfully prefetched a image from {source.name!r} source in {self.name!r} category")
+            except Exception as e:
+                print("Unexpected Exception during prefetch")
+                print(e)
 
     async def fetch(self):
-        source = random.choice(self.sources)
+        # Try to get an image from the queue, waiting up for one second
+        print(f"Fetching a image from {self.name!r} category")
         try:
-            return await source.fetch()
-        except Exception:
-            raise PicFetchFailedException(f"Failed to fetch a pic from {self.name} category")
+            file = await asyncio.wait_for(self.fetch_cache.get(), timeout=0.5)
+        except asyncio.TimeoutError:
+            raise PicFetchFailedException(f"Failed to fetch a image from {self.name!r} category")
+        print(f"Image fetched from {self.name!r} category")
+        return file
+
+    @command()
+    async def fetch_command(self, ctx):
+        picfile = await self.fetch()
+        await ctx.channel.send(file=picfile)
 
     def add_source(self, source):
         self.sources.append(source)
@@ -103,6 +132,7 @@ class PicGetter:
     Sources can be added with `cutepics.add_source(bot, source)`
     A list of categories is available from `cutepics.categories`
     """
+
     def __init__(self):
         self._categories = {}
 
@@ -120,8 +150,8 @@ class PicGetter:
             category = self._categories[name]
         else:
             category = PicCategory(name)
-            bot.add_cog(category.cog)
             self._categories[name] = category
+            bot.add_cog(category)
         category.add_source(source)
 
     @property

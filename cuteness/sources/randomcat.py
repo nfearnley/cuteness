@@ -5,6 +5,7 @@ from cuteness.lib.cutepics import cutepics, PicSource, download_file
 
 class RandomCatSource(PicSource):
     category = "cat"
+    name = "randomcat"
 
     async def fetch(self):
         async with aiohttp.ClientSession(raise_for_status=True) as session:

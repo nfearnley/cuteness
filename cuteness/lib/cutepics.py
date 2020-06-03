@@ -91,18 +91,21 @@ class PicCategory(Cog, name="Cuteness"):
                 file = None
                 # Try all possible sources (in a random order) until we have at least one that succeeds
                 while file is None:
+                    if not sources:
+                        break
                     source = sources.pop()
                     try:
                         file = await source.fetch()
                     except Exception as e:
-                        print(f"Failed to prefetch a image from {source.name!r} source in {self.name!r} category")
-                        print(e)
+                        print(f"Failed to prefetch a image from {source.name!r} source in {self.name!r} category: {e}")
                 if file is not None:
                     await self.fetch_cache.put(file)
                     print(f"Successfully prefetched a image from {source.name!r} source in {self.name!r} category")
+                else:
+                    print(f"Failed to find a source to prefetch an image in {self.name!r} category")
+                    await asyncio.sleep(5)
             except Exception as e:
-                print("Unexpected Exception during prefetch")
-                print(e)
+                print(f"Unexpected Exception during prefetch: {e}")
 
     async def fetch(self):
         # Try to get an image from the queue, waiting up for one second

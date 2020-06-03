@@ -1,12 +1,44 @@
-def getListDictItem(data, key, *, create=False):
-    try:
-        key = int(key)
-    except ValueError:
-        pass
-    try:
-        return data[key]
-    except (KeyError, IndexError):
-        raise KeyError
+import re
+
+RE_COMPONENT = re.compile(r'\[\d+\]|[^\[\].]+')
+RE_INDEX = re.compile(r'\[(\d+)\]')
+RE_KEY = re.compile(r'[^\[\].]+')
+RE_RESERVED = re.compile(r'[\[\]\.]')
+
+
+class BadPathException(Exception):
+    pass
+
+
+def parseComponent(component):
+    index_match = RE_INDEX.match(component)
+    if index_match:
+        return int(index_match[1])
+    elif RE_KEY.match(component):
+        return component
+    else:
+        raise BadPathException
+
+
+def buildPath(components):
+    path = ""
+    for c in components:
+        if isinstance(c, int):
+            path += f"[{c}]"
+        elif not RE_RESERVED.search(c):
+            path += f".{c}"
+        else:
+            raise BadPathException
+    if path.startswith("."):
+        path = path[1:]
+    return path
+
+
+def parsePath(path):
+    components = [parseComponent(c) for c in RE_COMPONENT.findall(path)]
+    if path != buildPath(components):
+        raise BadPathException
+    return components
 
 
 class PathDict:
@@ -21,12 +53,12 @@ class PathDict:
     def __getitem__(self, path):
         """value = PathDict[path]"""
         branch = self._values
-        components = path.split(".")
+        components = parsePath(path)
 
         for c in components:
             try:
-                branch = getListDictItem(branch, c)
-            except KeyError:
+                branch = branch[c]
+            except (KeyError, IndexError):
                 err = KeyError(f"Path not found: {path!r}")
                 err.path = path
                 raise err
@@ -36,15 +68,15 @@ class PathDict:
     def __setitem__(self, path, value):
         """PathDict[path] = value"""
         branch = self._values
-        components = path.split(".")
+        components = parsePath(path)
         last = components.pop()
 
         for c in components:
             try:
-                branch = getListDictItem(branch, c)
-            except KeyError:
+                branch = branch[c]
+            except (KeyError, IndexError):
                 branch[c] = dict()
-                branch = getListDictItem(branch, c)
+                branch = branch[c]
         branch[last] = value
 
     def get(self, path, default=None):

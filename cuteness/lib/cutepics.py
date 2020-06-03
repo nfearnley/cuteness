@@ -63,7 +63,6 @@ class PicSource:
     When a category tries to retrieve an image, it will call async `PicSource.fetch()`. This should be overridden by an child classes.
     """
     category = None
-    name = None
 
     async def fetch(self):
         raise NotImplementedError
@@ -123,17 +122,15 @@ class PicCategory(Cog, name="Cuteness"):
                 random.shuffle(sources)
                 file = None
                 # Try all possible sources (in a random order) until we have at least one that succeeds
-                while file is None:
-                    if not sources:
-                        break
+                while file is None and sources:
                     source = sources.pop()
                     try:
                         file = await source.fetch()
                     except Exception as e:
                         print(f"Failed to prefetch a image from {source.name!r} source in {self.name!r} category: {e}")
                 if file is not None:
-                    await self.fetch_cache.put(file)
                     print(f"Successfully prefetched a image from {source.name!r} source in {self.name!r} category")
+                    await self.fetch_cache.put(file)
                 else:
                     print(f"Failed to find a source to prefetch an image in {self.name!r} category")
                     await asyncio.sleep(5)

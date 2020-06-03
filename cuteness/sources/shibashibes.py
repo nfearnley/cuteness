@@ -4,7 +4,7 @@ from cuteness.lib.cutepics import cutepics, JsonPicSource
 class ShibaShibes(JsonPicSource):
     category = "dog"
     url = "http://shibe.online/api/shibes"
-    json_path = "0"
+    json_path = "[0]"
 
 
 def setup(bot):

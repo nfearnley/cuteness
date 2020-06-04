@@ -10,7 +10,7 @@ from discord import File
 
 from cuteness.lib.pathdict import PathDict
 
-# TODO: snake, bat, rat, mouse, goal, llama
+# TODO: add sources for: bat, rat, mouse, goat, llama, alpaca, pigeon, parrot, turtle, rabbit/bunny, horse, snake, penguin, sloth
 category_aliases = {
     "bird": ["birds", "birb", "birbs", "birdy", "birdie", "birdies"],
     "cat": ["cats", "kitten", "kittens", "kitty", "kitties", "feline"],

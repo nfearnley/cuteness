@@ -8,7 +8,7 @@ def get_category_name(p, message_text):
     commands = [f'{p}{n}' for n in names]
     if message_text not in commands:
         return None
-    name = message_text.content[len(p):]
+    name = message_text[len(p):]
     return name
 
 
@@ -37,7 +37,7 @@ class CutenessCog(Cog, name="Cuteness"):
 
     @Cog.listener()
     async def on_message(self, message):
-        p = await self.get_prefix(message)
+        p = await self.bot.get_prefix(message)
         name = get_category_name(p, message.content)
         if name is None:
             return

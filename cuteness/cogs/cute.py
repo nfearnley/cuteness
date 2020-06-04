@@ -37,6 +37,8 @@ class CutenessCog(Cog, name="Cuteness"):
 
     @Cog.listener()
     async def on_message(self, message):
+        if message.author.bot:
+            return
         p = await self.bot.get_prefix(message)
         name = get_category_name(p, message.content)
         if name is None:

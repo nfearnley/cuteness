@@ -1,3 +1,5 @@
+import discord.utils
+from discord import Embed, Permissions
 from discord.ext.commands import command, Cog
 
 from cuteness.lib.cutepics import cutepics
@@ -34,6 +36,11 @@ class CutenessCog(Cog, name="Cuteness"):
             + "Or use one of these categories:\n"
             + category_commands
         )
+
+    @command()
+    async def invite(self, ctx):
+        invite_url = discord.utils.oauth_url(ctx.bot.user.id, permissions=Permissions(read_messages=True, send_messages=True, attach_files=True))
+        await ctx.channel.send(embed=Embed(description=f"[Invite]({invite_url}) Cuteness to your server!"))
 
     @Cog.listener()
     async def on_message(self, message):

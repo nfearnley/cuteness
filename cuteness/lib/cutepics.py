@@ -99,24 +99,23 @@ class RedditPicSource(PicSource):
     maxtrycount = 5
 
     async def fetch(self):
-        hintpath = "[0].data.children.[0].data.post_hint"
-        imagepath = "[0].data.children.[0].data.url"
-
         if self.subreddit is None:
             raise NotImplementedError
 
         trycount = 1
-        json_url = f"https://api.reddit.com/r/{self.subreddit}/random"
-        while trycount >= self.maxtrycount:
+        file = None
+        while file is None:
+            if trycount > self.maxtrycount:
+                raise SourceNotReadyException("No images found on this subreddit")
             async with aiohttp.ClientSession(raise_for_status=True) as session:
-                async with session.get(json_url) as r:
-                    js = PathDict(await r.json())
-            if js[hintpath] == "image":
-                image_url = js[imagepath]
-                return await download_file(image_url)
+                async with session.get(f"https://api.reddit.com/r/{self.subreddit}/random") as r:
+                    js = await r.json()
+                    pdict = PathDict(js)
+            if pdict["[0].data.children[0].data.post_hint"] == "image":
+                image_url = pdict["[0].data.children[0].data.url"]
+                file = await download_file(image_url)
             trycount += 1
-
-        return SourceNotReadyException("No images found on this subreddit")
+        return file
 
 
 class PicCategory(Cog, name="Cuteness"):

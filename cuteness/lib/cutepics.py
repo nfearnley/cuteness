@@ -7,9 +7,19 @@ import os.path
 from urllib.parse import urlparse
 
 from discord import File
-from discord.ext.commands import command, Cog
 
 from cuteness.lib.pathdict import PathDict
+
+category_aliases = {
+    "dog": ["doggo", "doggy", "doge", "puppy", "pup", "puppers"]
+}
+
+
+def find_one(iterable):
+    try:
+        return next(iterable)
+    except StopIteration:
+        return None
 
 
 class PicFetchFailedException(Exception):
@@ -118,7 +128,7 @@ class RedditPicSource(PicSource):
         return file
 
 
-class PicCategory(Cog, name="Cuteness"):
+class PicCategory:
     """A class repesenting each category of images
 
     This is a Cog used to dynamically create a new command for each category.
@@ -128,14 +138,12 @@ class PicCategory(Cog, name="Cuteness"):
 
     def __init__(self, name):
         self.name = name
+        self.aliases = category_aliases.get(name, [])
         self.sources = []
         prefetch_count = 1
         self.fetch_cache = asyncio.Queue(maxsize=prefetch_count)
-        self.fetch_command.name = name
-        self.fetch_command.help = f"Get a random cute {name} picture"
 
-    @Cog.listener()
-    async def on_first_ready(self):
+    async def start(self):
         asyncio.create_task(self.prefetch())
 
     async def prefetch(self):
@@ -172,11 +180,6 @@ class PicCategory(Cog, name="Cuteness"):
         print(f"Image fetched from {self.name!r} category")
         return file
 
-    @command()
-    async def fetch_command(self, ctx):
-        picfile = await self.fetch()
-        await ctx.channel.send(file=picfile)
-
     def add_source(self, source):
         self.sources.append(source)
 
@@ -202,10 +205,9 @@ class PicGetter:
 
     async def fetch(self, name=None):
         """fetch a random image from a category"""
-        if name is None:
-            name = random.choice(list(self._categories.keys()))
-        name = name.lower()
-        category = self._categories[name]
+        category = self.get_category(name)
+        if category is None:
+            raise KeyError(f"Unrecognized Category: {name}")
         return await category.fetch()
 
     def add_source(self, bot, source):
@@ -213,14 +215,36 @@ class PicGetter:
         if name in self._categories:
             category = self._categories[name]
         else:
-            category = PicCategory(name)
-            self._categories[name] = category
-            bot.add_cog(category)
+            category = self.add_category(bot, name)
         category.add_source(source)
+
+    def add_category(self, bot, name):
+        category = PicCategory(name)
+        self._categories[name] = category
+        bot.add_listener(category.start, name="on_first_ready")
+        return category
+
+    def get_category(self, name):
+        if name is None:
+            category = random.choice(list(self._categories.values()))
+        else:
+            name = name.lower()
+            category = self._categories.get(name)
+            if not category:
+                category = find_one(c for c in self.categories if name in c.aliases)
+        return category
 
     @property
     def categories(self):
         return list(self._categories.keys())
+
+    @property
+    def categories_and_aliases(self):
+        names = []
+        for c in self._categories.values():
+            names.append(c.name)
+            names.extend(c.aliases)
+        return names
 
     def __str__(self):
         return "cutepics"

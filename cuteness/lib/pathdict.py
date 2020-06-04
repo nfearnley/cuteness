@@ -43,17 +43,15 @@ def parsePath(path):
 
 class PathDict:
     def __init__(self, data={}):
-        try:
-            # Try to convert directly to dict
-            self._values = dict(data)
-        except ValueError:
-            # If unable to covert directly to dict, try to convert an iterable to dict
-            self._values = {i: v for i, v in enumerate(data)}
+        self._values = data
 
     def __getitem__(self, path):
         """value = PathDict[path]"""
         branch = self._values
-        components = parsePath(path)
+        try:
+            components = parsePath(path)
+        except BadPathException:
+            raise BadPathException(f"Bad Path: {path}")
 
         for c in components:
             try:
@@ -88,3 +86,9 @@ class PathDict:
 
     def toDict(self):
         return self._values
+
+    def __str__(self):
+        return str(self._values)
+
+    def __repr__(self):
+        return repr(self._values)

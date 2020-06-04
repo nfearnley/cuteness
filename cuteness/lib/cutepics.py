@@ -201,7 +201,7 @@ class PicGetter:
     """
 
     def __init__(self):
-        self._categories = {}
+        self._categories = []
 
     async def fetch(self, name=None):
         """fetch a random image from a category"""
@@ -212,36 +212,35 @@ class PicGetter:
 
     def add_source(self, bot, source):
         name = source.category.lower()
-        if name in self._categories:
-            category = self._categories[name]
-        else:
+        category = self.get_category(name, strict=True)
+        if category is None:
             category = self.add_category(bot, name)
         category.add_source(source)
 
     def add_category(self, bot, name):
         category = PicCategory(name)
-        self._categories[name] = category
+        self._categories.append(category)
         bot.add_listener(category.start, name="on_first_ready")
         return category
 
-    def get_category(self, name):
+    def get_category(self, name, strict=False):
         if name is None:
-            category = random.choice(list(self._categories.values()))
+            category = random.choice(self._categories)
         else:
             name = name.lower()
-            category = self._categories.get(name)
-            if not category:
-                category = find_one(c for c in self.categories if name in c.aliases)
+            category = find_one(c for c in self._categories if name == c.name)
+            if not category and not strict:
+                category = find_one(c for c in self._categories if name in c.aliases)
         return category
 
     @property
     def categories(self):
-        return list(self._categories.keys())
+        return [c.name for c in self._categories]
 
     @property
     def categories_and_aliases(self):
         names = []
-        for c in self._categories.values():
+        for c in self._categories:
             names.append(c.name)
             names.extend(c.aliases)
         return names

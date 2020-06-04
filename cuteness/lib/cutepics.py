@@ -10,8 +10,24 @@ from discord import File
 
 from cuteness.lib.pathdict import PathDict
 
+# TODO: snake, bat, rat, mouse, goal, llama
 category_aliases = {
-    "dog": ["doggo", "doggy", "doge", "puppy", "pup", "puppers"]
+    "bird": ["birds", "birb", "birbs", "birdy", "birdie", "birdies"],
+    "cat": ["cats", "kitten", "kittens", "kitty", "kitties", "feline"],
+    "cockatiel": ["cockatiels", "cockatoo", "cockatoos", "parrot", "parrots"],
+    "dog": ["dogs", "doggo", "doggos", "doggy", "doggie", "doggies", "doge", "puppy", "puppies", "pup", "pups", "pupper", "puppers", "puppo", "canine", "canines", "pooch", "pooches"],
+    "duck": ["ducks", "ducky", "duckies", "duckling", "ducklings"],
+    "fox": ["foxes"],
+    "goose": ["geese"],
+    "koala": ["koalas"],
+    "lizard": ["lizards", "reptile", "reptiles", "iguana", "iguanas", "gecko", "geckos"],
+    "owl": ["owls", "owlet", "owlets"],
+    "panda": ["pandas"],
+    "pig": ["pigs", "piggy", "piggies", "piglet", "piglets"],
+    "raccoon": ["racoons", "trashpanda", "trashpandas"],
+    "redpanda": ["redpandas"],
+    "squirrel": ["squirrels"],
+    "tiny": ["tinies", "sw"]
 }
 
 

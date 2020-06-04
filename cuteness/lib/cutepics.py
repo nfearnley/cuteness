@@ -93,6 +93,32 @@ class JsonPicSource(PicSource):
         return await download_file(image_url)
 
 
+class RedditPicSource(PicSource):
+    """A special class of PicSource for downloading images from a subreddit"""
+    subreddit = None
+    maxtrycount = 5
+
+    async def fetch(self):
+        hintpath = "[0].data.children.[0].data.post_hint"
+        imagepath = "[0].data.children.[0].data.url"
+
+        if self.subreddit is None:
+            raise NotImplementedError
+
+        trycount = 1
+        json_url = f"https://api.reddit.com/r/{self.subreddit}/random"
+        while trycount >= self.maxtrycount:
+            async with aiohttp.ClientSession(raise_for_status=True) as session:
+                async with session.get(json_url) as r:
+                    js = PathDict(await r.json())
+            if js[hintpath] == "image":
+                image_url = js[imagepath]
+                return await download_file(image_url)
+            trycount += 1
+
+        return SourceNotReadyException("No images found on this subreddit")
+
+
 class PicCategory(Cog, name="Cuteness"):
     """A class repesenting each category of images
 

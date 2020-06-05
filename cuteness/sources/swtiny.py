@@ -39,7 +39,7 @@ class ChannelScraper:
         attachments = [a for m in messages for a in m.attachments]
         urls = [a.url for a in attachments if not a.is_spoiler()]
         self.image_urls.extend(urls)
-        print(f"Found {len(attachments)} urls ({len(self.image_urls)} total) in #{self.channel.name}{len(self.image_urls)}")
+        print(f"Found {len(attachments)} urls ({len(self.image_urls)} total) in #{self.channel.name}")
         return True
 
 

@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class RandomFox(JsonPicSource):
+class RandomFox(JsonSource):
     category = "fox"
     url = "https://randomfox.ca/floof/"
     json_path = "image"

@@ -1,8 +1,7 @@
-import discord.utils
 from discord import Embed, Permissions
 from discord.ext.commands import command, Cog
 
-from cuteness.lib.cutepics import cutepics
+from cuteness.lib import cutepics
 
 
 def get_category_name(p, message_text):

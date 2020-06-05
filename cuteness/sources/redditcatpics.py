@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, RedditPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import RedditSource
 
 
-class RedditCatpics(RedditPicSource):
+class RedditCatpics(RedditSource):
     category = "cat"
     subreddit = "catpics"
 

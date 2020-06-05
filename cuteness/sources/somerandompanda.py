@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class SomeRandomPanda(JsonPicSource):
+class SomeRandomPanda(JsonSource):
     category = "panda"
     url = "https://some-random-api.ml/img/panda"
     json_path = "link"

@@ -9,7 +9,7 @@ from cuteness import discordplus
 
 from cuteness.lib.conf import conf, ConfigError
 from cuteness.lib import paths
-from cuteness.lib.cutepics import cutepics
+from cuteness.lib import cutepics
 
 parser = argparse.ArgumentParser(description="Cute pictures discord bot", add_help=True)
 parser.add_argument("--config", dest="confpath", action="store", type=Path, help="path to configuration file")

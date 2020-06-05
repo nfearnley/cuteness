@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class TheDogApi(JsonPicSource):
+class TheDogApi(JsonSource):
     category = "dog"
     url = "https://api.thedogapi.com/v1/images/search"
     json_path = "[0].url"

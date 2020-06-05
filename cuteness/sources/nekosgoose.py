@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class NekosGoose(JsonPicSource):
+class NekosGoose(JsonSource):
     category = "goose"
     url = "https://nekos.life/api/v2/img/goose"
     json_path = "url"

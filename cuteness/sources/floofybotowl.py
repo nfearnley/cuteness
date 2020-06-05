@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class FloofyBotOwl(JsonPicSource):
+class FloofyBotOwl(JsonSource):
     category = "owl"
     url = "http://pics.floofybot.moe/owl"
     json_path = "image"

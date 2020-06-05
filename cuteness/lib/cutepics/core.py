@@ -1,14 +1,8 @@
 import asyncio
-import io
-import mimetypes
-import aiohttp
 import random
-import os.path
-from urllib.parse import urlparse
 
-from discord import File
-
-from cuteness.lib.pathdict import PathDict
+from cuteness.lib.utils import find_one
+from .errors import PicFetchFailedException
 
 # TODO: add sources for: bat, rat, mouse, goat, llama, alpaca, pigeon, parrot, turtle, rabbit/bunny, horse, snake, penguin, sloth
 category_aliases = {
@@ -29,119 +23,6 @@ category_aliases = {
     "squirrel": ["squirrels"],
     "tiny": ["tinies", "sw"]
 }
-
-
-def find_one(iterable):
-    try:
-        return next(iterable)
-    except StopIteration:
-        return None
-
-
-class PicFetchFailedException(Exception):
-    """Thrown when a category fails to download an image"""
-    pass
-
-
-class SourceNotReadyException(Exception):
-    """Thrown when a source is not ready to fetch an image"""
-    pass
-
-
-def get_url_filename(url, mimetype):
-    """Returns the correct filename, given url and mimetype
-
-    The filename is extracted from the url.
-    The mimetype is used to determine the appropriate file extension. If the extension is missing, it is appended to the filename.
-    """
-    filename = os.path.basename(urlparse(url).path)
-    if mimetype == "application/octet-stream":
-        return filename
-    filename_mimetype, _ = mimetypes.guess_type(filename)
-    if filename_mimetype != mimetype:
-        mimetype_extension = mimetypes.guess_extension(mimetype)
-        filename += mimetype_extension or ""
-    return filename
-
-
-async def download_file(url, session=None):
-    """Downloads a file from a url, returning it as a discord.py File object
-
-    If an existing session is not provided, one will be created.
-    """
-    if session is None:
-        async with aiohttp.ClientSession() as session:
-            return await download_file(url, session)
-
-    async with session.get(url) as r:
-        if r.status != 200:
-            raise PicFetchFailedException
-        data = io.BytesIO(await r.read())
-    filename = get_url_filename(url, r.content_type)
-    return File(data, filename)
-
-
-class PicSource:
-    """A stub for creating child PicSource classes
-
-    Each source belongs to a single category, and is used to fetch images for that category.
-    Child classes must have `PicSource.category` set
-    When a category tries to retrieve an image, it will call async `PicSource.fetch()`. This should be overridden by an child classes.
-    """
-    category = None
-
-    async def fetch(self):
-        raise NotImplementedError
-
-    def __str__(self):
-        return self.name
-
-    def __repr__(self):
-        return f"PicSource({self.name!r})"
-
-    @property
-    def name(self):
-        return self.__class__.__name__
-
-
-class JsonPicSource(PicSource):
-    """A special class of PicSource for downloading images from a JSON api"""
-    url = None
-    json_path = None
-
-    async def fetch(self):
-        if self.url is None or self.json_path is None:
-            raise NotImplementedError
-        async with aiohttp.ClientSession(raise_for_status=True) as session:
-            async with session.get(self.url) as r:
-                js = PathDict(await r.json())
-        image_url = js[self.json_path]
-        return await download_file(image_url)
-
-
-class RedditPicSource(PicSource):
-    """A special class of PicSource for downloading images from a subreddit"""
-    subreddit = None
-    maxtrycount = 5
-
-    async def fetch(self):
-        if self.subreddit is None:
-            raise NotImplementedError
-
-        trycount = 1
-        file = None
-        while file is None:
-            if trycount > self.maxtrycount:
-                raise SourceNotReadyException("No images found on this subreddit")
-            async with aiohttp.ClientSession(raise_for_status=True) as session:
-                async with session.get(f"https://api.reddit.com/r/{self.subreddit}/random") as r:
-                    js = await r.json()
-                    pdict = PathDict(js)
-            if pdict["[0].data.children[0].data.post_hint"] == "image":
-                image_url = pdict["[0].data.children[0].data.url"]
-                file = await download_file(image_url)
-            trycount += 1
-        return file
 
 
 class PicCategory:
@@ -209,7 +90,7 @@ class PicCategory:
 class PicGetter:
     """Root class of cutepics module
 
-    Accessible by: from cuteness.lib.cutepics import cutepics
+    Accessible by: from cuteness.lib import cutepics
     An image from a random category can be fetched with `cutepics.fetch()`
     An image from a specific category can be fetched with `cutepics.fetch(name)`
     Sources can be added with `cutepics.add_source(bot, source)`

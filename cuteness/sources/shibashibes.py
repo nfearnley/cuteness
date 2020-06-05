@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class ShibaShibes(JsonPicSource):
+class ShibaShibes(JsonSource):
     category = "dog"
     url = "http://shibe.online/api/shibes"
     json_path = "[0]"

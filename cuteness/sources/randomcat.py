@@ -1,7 +1,8 @@
-from cuteness.lib.cutepics import cutepics, JsonPicSource
+from cuteness.lib import cutepics
+from cuteness.lib.cutepics import JsonSource
 
 
-class RandomCat(JsonPicSource):
+class RandomCat(JsonSource):
     category = "cat"
     url = "http://aws.random.cat/meow"
     json_path = "file"

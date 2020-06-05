@@ -39,7 +39,7 @@ class CutenessCog(Cog, name="Cuteness"):
 
     @command()
     async def invite(self, ctx):
-        invite_url = discord.utils.oauth_url(ctx.bot.user.id, permissions=Permissions(read_messages=True, send_messages=True, attach_files=True))
+        invite_url = self.bot.oauth_url(permissions=Permissions(read_messages=True, send_messages=True, attach_files=True))
         await ctx.channel.send(embed=Embed(description=f"[Invite]({invite_url}) Cuteness to your server!"))
 
     @Cog.listener()

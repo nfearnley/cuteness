@@ -1,4 +1,4 @@
-from cuteness.discordplus import bot, command, embed, member, client
+from cuteness.discordplus import bot, command, embed, member, client, messageable, snowflake
 
 
 def patch():
@@ -7,3 +7,5 @@ def patch():
     member.patch()
     bot.patch()
     client.patch()
+    messageable.patch()
+    snowflake.patch()

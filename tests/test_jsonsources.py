@@ -2,7 +2,6 @@ import pytest
 import discord
 
 from cuteness.sources.dogceo import DogCeo
-from cuteness.sources.floofybotowl import FloofyBotOwl
 from cuteness.sources.nekosgoose import NekosGoose
 from cuteness.sources.nekoslizard import NekosLizard
 from cuteness.sources.nekosmeow import NekosMeow
@@ -26,13 +25,6 @@ from cuteness.sources.thedogapi import TheDogApi
 @pytest.mark.asyncio
 async def test_dogceo():
     source = DogCeo()
-    file = await source.fetch()
-    assert isinstance(file, discord.File)
-
-
-@pytest.mark.asyncio
-async def test_floofybotowl():
-    source = FloofyBotOwl()
     file = await source.fetch()
     assert isinstance(file, discord.File)
 

@@ -5,7 +5,7 @@ from cuteness.lib import cutepics
 
 
 def get_category_name(p, message_text):
-    names = cutepics.categories_and_aliases
+    names = cutepics.get_categories_and_aliases()
     commands = [f'{p}{n}' for n in names]
     if message_text not in commands:
         return None
@@ -26,9 +26,9 @@ class CutenessCog(Cog, name="Cuteness"):
     async def help(self, ctx, option=None):
         p = ctx.prefix
         if option == "aliases":
-            category_names = sorted(cutepics.categories_and_aliases)
+            category_names = sorted(cutepics.get_categories_and_aliases())
         else:
-            category_names = sorted(cutepics.categories)
+            category_names = sorted(cutepics.get_categories())
         category_commands = ', '.join(f'`{p}{c}`' for c in category_names)
         await ctx.channel.send(
             f"Type `{p}cute` to fetch a random cute picture!\n"

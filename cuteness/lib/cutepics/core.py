@@ -4,6 +4,8 @@ import random
 from cuteness.lib.utils import find_one
 from .errors import PicFetchFailedException
 
+categories = []
+
 # TODO: add sources for: bat, rat, mouse, goat, llama, alpaca, pigeon, parrot, turtle, rabbit/bunny, horse, snake, penguin, sloth
 category_aliases = {
     "bird": ["birds", "birb", "birbs", "birdy", "birdie", "birdies"],
@@ -87,66 +89,47 @@ class PicCategory:
         return f"PicCategory({self.name!r})"
 
 
-class PicGetter:
-    """Root class of cutepics module
-
-    Accessible by: from cuteness.lib import cutepics
-    An image from a random category can be fetched with `cutepics.fetch()`
-    An image from a specific category can be fetched with `cutepics.fetch(name)`
-    Sources can be added with `cutepics.add_source(bot, source)`
-    A list of categories is available from `cutepics.categories`
-    """
-
-    def __init__(self):
-        self._categories = []
-
-    async def fetch(self, name=None):
-        """fetch a random image from a category"""
-        category = self.get_category(name)
-        if category is None:
-            raise KeyError(f"Unrecognized Category: {name}")
-        return await category.fetch()
-
-    def add_source(self, bot, source):
-        name = source.category.lower()
-        category = self.get_category(name, strict=True)
-        if category is None:
-            category = self.add_category(bot, name)
-        category.add_source(source)
-
-    def add_category(self, bot, name):
-        category = PicCategory(name)
-        self._categories.append(category)
-        bot.add_listener(category.start, name="on_first_ready")
-        return category
-
-    def get_category(self, name, strict=False):
-        if name is None:
-            category = random.choice(self._categories)
-        else:
-            name = name.lower()
-            category = find_one(c for c in self._categories if name == c.name)
-            if not category and not strict:
-                category = find_one(c for c in self._categories if name in c.aliases)
-        return category
-
-    @property
-    def categories(self):
-        return [c.name for c in self._categories]
-
-    @property
-    def categories_and_aliases(self):
-        names = []
-        for c in self._categories:
-            names.append(c.name)
-            names.extend(c.aliases)
-        return names
-
-    def __str__(self):
-        return "cutepics"
-
-    def __repr__(self):
-        return "PicGetter"
+async def fetch(name=None):
+    """fetch a random image from a category"""
+    category = get_category(name)
+    if category is None:
+        raise KeyError(f"Unrecognized Category: {name}")
+    return await category.fetch()
 
 
-cutepics = PicGetter()
+def add_source(bot, source):
+    name = source.category.lower()
+    category = get_category(name, strict=True)
+    if category is None:
+        category = add_category(bot, name)
+    category.add_source(source)
+
+
+def add_category(bot, name):
+    category = PicCategory(name)
+    categories.append(category)
+    bot.add_listener(category.start, name="on_first_ready")
+    return category
+
+
+def get_category(name, strict=False):
+    if name is None:
+        category = random.choice(categories)
+    else:
+        name = name.lower()
+        category = find_one(c for c in categories if name == c.name)
+        if not category and not strict:
+            category = find_one(c for c in categories if name in c.aliases)
+    return category
+
+
+def get_categories():
+    return [c.name for c in categories]
+
+
+def get_categories_and_aliases():
+    names = []
+    for c in categories:
+        names.append(c.name)
+        names.extend(c.aliases)
+    return names

@@ -57,7 +57,7 @@ def main():
     async def on_first_ready():
         print(f"Logged in as: {bot.user} ({bot.user.id})")
         print(f"Prefix: {conf.prefix}")
-        print(f"Loaded Categories: {', '.join(cutepics.categories)}")
+        print(f"Loaded Categories: {', '.join(cutepics.get_categories())}")
 
     if not conf.authtoken:
         print("Authentication token not found!")

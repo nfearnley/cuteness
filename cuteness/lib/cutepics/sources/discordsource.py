@@ -66,7 +66,7 @@ class ChannelWatcher:
     async def scrape(self, message):
         urls = [a.url for a in message.attachments if not a.is_spoiler()]
         self.image_urls.extend(urls)
-        print(f"Added {len(urls)} new urls ({len(self.image_urls)} total) from #{self.channel}")
+        print(f"Added {len(urls)} new urls ({len(self.image_urls)} total) from channel {self.channelid}")
 
 
 # TODO: Setup persistent file cache for image_urls

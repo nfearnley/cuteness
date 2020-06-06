@@ -61,7 +61,7 @@ class ChannelWatcher:
     async def on_message(self, message):
         if message.channel.id != self.channelid:
             return
-        self.scrape(message)
+        await self.scrape(message)
 
     async def scrape(self, message):
         urls = [a.url for a in message.attachments if not a.is_spoiler()]

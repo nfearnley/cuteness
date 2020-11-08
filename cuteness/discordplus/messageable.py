@@ -9,7 +9,7 @@ def wrapSnowflake(name, kwargs):
         return
     value = kwargs[name]
     if isinstance(value, int):
-        kwargs["before"] = discord.Snowflake(value)
+        kwargs[name] = discord.Snowflake(value)
 
 
 def history(self, **kwargs):
